@@ -8,7 +8,7 @@ import java.net.{InetSocketAddress, ServerSocket, Socket}
  */
 
 object Main {
-  val DEFAULT_PORT = 8080
+  val DEFAULT_PORT = 80
   val DEFAULT_ROOTDIR = "rootdir/"
 
   def main(args: Array[String]): Unit = {
