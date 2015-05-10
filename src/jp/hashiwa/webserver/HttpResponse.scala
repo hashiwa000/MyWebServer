@@ -76,6 +76,8 @@ object HttpResponse {
     val file = new File(rootDir + "web/" + uri)
     if (!file.exists()) return None
 
+    println("** get body from " + file)
+
     val source = Source.fromFile(file)
     Some(source.getLines().toList)
   }
@@ -97,6 +99,8 @@ object HttpResponse {
     if (!obj.isInstanceOf[WebApp]) return None
 
     val app = obj.asInstanceOf[WebApp]
+
+    println("** get body from " + className)
 
     try {
       request.method match {

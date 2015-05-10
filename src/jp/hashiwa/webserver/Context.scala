@@ -13,7 +13,14 @@ class Context(_rootdir: String) {
   val rootingMap = parseRooting()
   val classLoader = getClassLoader()
 
-  def loadClass(name: String): Class[_] = classLoader.loadClass(name)
+  def loadClass(name: String): Class[_] = try {
+      classLoader.loadClass(name)
+    } catch {
+      case e: ClassNotFoundException => {
+        println("** ClassNotFoundException : " + e.getLocalizedMessage)
+        null
+      }
+    }
 
   def resolve(originalUri: String): String = {
     rootingMap.get(originalUri) match {
