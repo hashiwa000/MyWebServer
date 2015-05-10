@@ -1,6 +1,6 @@
 package jp.hashiwa.webserver
 
-import java.io.{File, IOException}
+import java.io.{FilenameFilter, File, IOException}
 import java.net.{URL, URLClassLoader}
 
 import scala.io.Source
@@ -38,11 +38,34 @@ class Context(_rootdir: String) {
   }
 
   private def getClassLoader(): ClassLoader = {
-    val sp = File.pathSeparatorChar
-    val url = new URL(
-      "file://" + rootDir + sp + "app" + sp + "classes")
+    val classesDir = toURL(rootDir + "/app/classes/")
+    val libs = toURLs(rootDir + "/app/lib/")
+
+    val urls = List(classesDir) ++: libs
+
+    print("** classpath is ")
+    urls.foreach(u => print(u + ", "))
+    println()
 
     val parent = getClass().getClassLoader()
-    new URLClassLoader(Array[URL](url), parent)
+    new URLClassLoader(urls, parent)
   }
+
+  private def toURL(filePath: String) =
+    new File(filePath).toURI().toURL()
+
+  private def toURLs(fileDir: String): Array[URL] = {
+    val libs = new File(fileDir).listFiles(new FilenameFilter {
+      override def accept(dir: File, name: String): Boolean =
+          name.endsWith(".jar") || name.endsWith(".war")
+    })
+
+    if (libs == null) {
+      println("** Failed to read " + fileDir)
+      return Array()
+    }
+
+    libs.map(_.toURI().toURL())
+  }
+
 }

@@ -2,7 +2,7 @@
 web server
 
 ## Requirements
-- Scala
+- Scala (Scala 2.11.6)
 
 ## Usage
 commandline arguments : [port] [rootdir]
