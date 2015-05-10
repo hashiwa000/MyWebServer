@@ -18,7 +18,10 @@ rootdir/
   |
   +- app/
   |   |
-  |   +- classes/   <= Scala applications for
+  |   +- classes/   <= Scala class files for
+  |   |                creating HTTP response
+  |   |
+  |   +- lib/       <= Scala libraries for
   |                    creating HTTP response
   |
   +- web/           <= HTML files
