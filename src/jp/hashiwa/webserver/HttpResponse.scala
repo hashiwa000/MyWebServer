@@ -2,6 +2,8 @@ package jp.hashiwa.webserver
 
 import java.io._
 
+import jp.hashiwa.webserver.app.WebApp
+
 import scala.io.Source
 
 /**
@@ -33,16 +35,17 @@ case class HttpResponse(code: Int, reason: String, headers: Map[String, String],
 object HttpResponse {
   def doGet(request: HttpRequest, context: Context): HttpResponse = {
     val headers = Map[String, String]()
+    val uri = context.resolve(request.uri)
+    val rootDir = context.rootDir
 
-    val file = getFile(request, context) match {
-      case Some(f) => f
-      case None => return doError404(request)
+    getBodyFromFile(rootDir, uri, context) match {
+      case Some(body) => HttpResponse(200, "OK", headers, body)
+      case None =>
+        getBodyFromClass(uri, request, context) match {
+          case Some(body) => HttpResponse(200, "OK", headers, body)
+          case None       => doError404(request)
+        }
     }
-
-    val source = Source.fromFile(file)
-    val body = source.getLines().toList
-
-    HttpResponse(200, "OK", headers, body)
   }
 
   def doError404(request: HttpRequest): HttpResponse = {
@@ -60,18 +63,54 @@ object HttpResponse {
     HttpResponse(404, "Not Found", headers, body)
   }
 
-  private def getFile(request: HttpRequest, context: Context): Option[File] = {
-    val rootDir = context.rootDir
-    val map = context.rootingMap
-    val originalUri = request.uri
-
-    val uri = map.get(originalUri) match {
-      case Some(value) => value
-      case None => originalUri
-    }
+  /**
+   * ウェブページを取得する。
+   * @param rootDir アプリケーションのルートディレクトリ
+   * @param uri URI
+   * @param context コンテクスト
+   * @return 取得されたウェブページのbody部。取得できなかった場合はNone。
+   */
+  private def getBodyFromFile(rootDir: String, uri: String,
+                      context: Context): Option[List[String]] = {
 
     val file = new File(rootDir + "web/" + uri)
     if (!file.exists()) return None
-    Some(file)
+
+    val source = Source.fromFile(file)
+    Some(source.getLines().toList)
+  }
+
+  /**
+   * ウェブページを動的に生成する。
+   * @param className ウェブページ生成に使用するクラス
+   * @param request リクエスト
+   * @param context コンテクスト
+   * @return 生成されたウェブページのbody部。生成できなかった場合はNone。
+   */
+  private def getBodyFromClass(className: String, request: HttpRequest,
+                           context: Context): Option[List[String]] = {
+//    println("*** " + uri)
+    val clazz = context.loadClass(className)
+    if (clazz == null) return None
+
+    val obj = clazz.newInstance()
+    if (!obj.isInstanceOf[WebApp]) return None
+
+    val app = obj.asInstanceOf[WebApp]
+
+    try {
+      request.method match {
+        case "GET" => Some(app.doGet(request))
+        case "POST" => Some(app.doPost(request))
+        case "PUT" => Some(app.doPut(request))
+        case "DELETE" => Some(app.doDelete(request))
+        case _ => None
+      }
+    } catch {
+      case e: Exception => {
+        println("** " + e.getLocalizedMessage)
+        None
+      }
+    }
   }
 }

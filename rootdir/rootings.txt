@@ -1,2 +1,6 @@
 # this is comment
-/       /index.html
+# static web page
+/         /index.html
+
+# Application for creating web page
+/sample   jp.hashiwa.webserver.app.WebAppImpl
