@@ -7,7 +7,7 @@ web server
 ## Usage
 commandline arguments : [port] [rootdir]
 
-default port is 80
+default port is 80  
 default rootdir is rootdir/
 
 ## Directory Structure
