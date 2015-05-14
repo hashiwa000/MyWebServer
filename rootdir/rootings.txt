@@ -1,6 +1,10 @@
 # this is comment
+# Pattern is matched as regex.
+# (see: API Reference of java.lang.String#matches(String))
+
 # static web page
 /         /index.html
 
 # Application for creating web page
-/sample   jp.hashiwa.webserver.app.WebAppImpl
+/sample   jp.hashiwa.webserver.sample.WebAppImpl
+/rest/.*  jp.hashiwa.webserver.sample.RESTfullApp

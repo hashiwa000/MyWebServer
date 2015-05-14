@@ -30,5 +30,5 @@ rootdir/
 
 </pre>
 
-Application must be subclass of jp.hashiwa.webserver.app.WebApp
+Application must be subclass of jp.hashiwa.webserver.WebApp
 

@@ -45,10 +45,7 @@ object Main {
     println("** read from " + socket)
     val request = HttpRequest.parse(socket.getInputStream)
 
-    val response = request.method match {
-      case "GET" => HttpResponse.doGet(request, context)
-      case _ => HttpResponse.doError404(request)
-    }
+    val response = HttpResponse.getResponse(request, context)
 
     println("** write to " + socket)
     response.writeTo(socket.getOutputStream)

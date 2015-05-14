@@ -13,21 +13,27 @@ class Context(_rootdir: String) {
   val rootingMap = parseRooting()
   val classLoader = getClassLoader()
 
-  def loadClass(name: String): Class[_] = try {
-      classLoader.loadClass(name)
+  def loadClass(name: String): Option[Class[_]] =
+    try {
+      Some(classLoader.loadClass(name))
     } catch {
       case e: ClassNotFoundException => {
         println("** ClassNotFoundException : " + e.getLocalizedMessage)
-        null
+        None
       }
     }
 
-  def resolve(originalUri: String): String = {
-    rootingMap.get(originalUri) match {
-      case Some(value) => value
-      case None => originalUri
+  def resolve(originalUri: String): String =
+//    rootingMap.get(originalUri) match {
+//      case Some(value) => value
+//      case None => originalUri
+//    }
+    rootingMap.filter(e => originalUri.matches(e._1))
+              .headOption
+              .map(_._2) match {
+      case Some(url) => url
+      case None      => originalUri
     }
-  }
 
   private def parseRooting(): Map[String, String] = {
     val rooting = rootDir + "/rootings.txt"

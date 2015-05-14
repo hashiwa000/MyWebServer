@@ -2,19 +2,18 @@ package jp.hashiwa.webserver
 
 import java.io._
 
-import jp.hashiwa.webserver.app.WebApp
-
 import scala.io.Source
 
 /**
  * Created by Hashiwa on 2015/05/09.
  */
 case class HttpResponse(code: Int, reason: String, headers: Map[String, String], body: List[String]) {
-  val VERSION = "HTTP/1.1"
+  def this(code: Int, reason: String, body: List[String]) =
+    this(code, reason, Map[String, String](), body)
 
   def writeTo(out: OutputStream): Unit = {
     val writer = new BufferedWriter(new OutputStreamWriter(out))
-    writer.write(VERSION + " " + code + " " + reason)
+    writer.write(HttpResponse.VERSION + " " + code + " " + reason)
     writer.write("\r\n")
 
     headers
@@ -33,7 +32,11 @@ case class HttpResponse(code: Int, reason: String, headers: Map[String, String],
 }
 
 object HttpResponse {
-  def doGet(request: HttpRequest, context: Context): HttpResponse = {
+  val VERSION = "HTTP/1.1"
+  val OK_CODE = 200
+  val OK_REASON = "OK"
+
+  def getResponse(request: HttpRequest, context: Context): HttpResponse = {
     val headers = Map[String, String]()
     val uri = context.resolve(request.uri)
     val rootDir = context.rootDir
@@ -42,13 +45,13 @@ object HttpResponse {
       case Some(body) => HttpResponse(200, "OK", headers, body)
       case None =>
         getBodyFromClass(uri, request, context) match {
-          case Some(body) => HttpResponse(200, "OK", headers, body)
-          case None       => doError404(request)
+          case Some(res) => res
+          case None       => getError404(request)
         }
     }
   }
 
-  def doError404(request: HttpRequest): HttpResponse = {
+  def getError404(request: HttpRequest): HttpResponse = {
     val headers = Map[String, String]()
     val body = List[String] (
       "<html>" +
@@ -90,10 +93,12 @@ object HttpResponse {
    * @return 生成されたウェブページのbody部。生成できなかった場合はNone。
    */
   private def getBodyFromClass(className: String, request: HttpRequest,
-                           context: Context): Option[List[String]] = {
+                           context: Context): Option[HttpResponse] = {
 //    println("*** " + uri)
-    val clazz = context.loadClass(className)
-    if (clazz == null) return None
+    val clazz = context.loadClass(className) match {
+      case Some(c) => c
+      case None => return None
+    }
 
     val obj = clazz.newInstance()
     if (!obj.isInstanceOf[WebApp]) return None

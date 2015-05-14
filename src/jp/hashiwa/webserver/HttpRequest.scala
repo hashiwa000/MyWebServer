@@ -26,7 +26,11 @@ object HttpRequest {
         key -> value
       }).toMap
 
+    val body = Iterator
+      .continually(br.readLine())
+      .takeWhile(line => line != null && line != "")
+      .toList
 
-    HttpRequest(elems(0), elems(1), elems(2), headers, null)
+    HttpRequest(elems(0), elems(1), elems(2), headers, body)
   }
 }
