@@ -10,7 +10,7 @@ import scala.io.Source
 case class HttpResponse(code: Int, headers: Map[String, String], body: List[String]) {
   val reason = HttpResponse.reasonPhraseOf(code)
 
-  def this(code: Int, reason: String, body: List[String]) =
+  def this(code: Int, body: List[String]) =
     this(code, Map[String, String](), body)
 
   def writeTo(out: OutputStream): Unit = {
@@ -36,7 +36,6 @@ case class HttpResponse(code: Int, headers: Map[String, String], body: List[Stri
 object HttpResponse {
   val VERSION = "HTTP/1.1"
   val OK_CODE = 200
-  val OK_REASON = "OK"
 
   def getResponse(request: HttpRequest, context: Context): HttpResponse = {
     val headers = Map[String, String]()

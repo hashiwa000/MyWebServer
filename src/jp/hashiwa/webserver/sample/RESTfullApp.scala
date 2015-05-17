@@ -19,11 +19,9 @@ class RESTfullApp extends WebApp {
 
     db.get(key) match {
       case Some(value) =>
-        new HttpResponse(HttpResponse.OK_CODE,
-          HttpResponse.OK_REASON, List(value))
+        new HttpResponse(HttpResponse.OK_CODE, List(value))
       case None =>
-        new HttpResponse(404, "not found",
-          List(key + " is not found"))
+        new HttpResponse(404, List(key + " is not found"))
     }
   }
 

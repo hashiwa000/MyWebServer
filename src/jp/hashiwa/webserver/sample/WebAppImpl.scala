@@ -22,8 +22,7 @@ class WebAppImpl extends WebApp {
       "<h2>Date: " + new Date() + "</h2>" +
       "</body>" +
       "</html>")
-    new HttpResponse(HttpResponse.OK_CODE,
-      HttpResponse.OK_REASON, body)
+    new HttpResponse(HttpResponse.OK_CODE, body)
   }
 
   override def doPost(request: HttpRequest): HttpResponse = {
@@ -44,7 +43,6 @@ class WebAppImpl extends WebApp {
         "</p>" +
         "</body>" +
         "</html>")
-    new HttpResponse(HttpResponse.OK_CODE,
-      HttpResponse.OK_REASON, body)
+    new HttpResponse(HttpResponse.OK_CODE, body)
   }
 }
