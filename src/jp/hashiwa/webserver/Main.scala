@@ -3,6 +3,8 @@ package jp.hashiwa.webserver
 import java.io._
 import java.net.{InetSocketAddress, ServerSocket, Socket}
 
+import jp.hashiwa.webserver.exception.BadRequestException
+
 /**
  * Created by Hashiwa on 2015/05/09.
  */
@@ -42,15 +44,24 @@ object Main {
 
   def processOneRequest(socket: Socket, context: Context) = {
 
-    println("** read from " + socket)
-    val request = HttpRequest.parse(socket.getInputStream)
+    try {
+      println("** read from " + socket)
+      val request = HttpRequest.parse(socket.getInputStream)
 
-    val response = HttpResponse.getResponse(request, context)
+      val response = HttpResponse.getResponse(request, context)
 
-    println("** write to " + socket)
-    response.writeTo(socket.getOutputStream)
+      println("** write to " + socket)
+      response.writeTo(socket.getOutputStream)
 
-    socket.close()
+    } catch {
+      case e: BadRequestException => {
+        println("** Exception : " + e.getLocalizedMessage)
+        val response = HttpResponse.getError(400)
+        response.writeTo(socket.getOutputStream)
+      }
+    } finally {
+      if (socket != null) socket.close()
+    }
   }
 
 }

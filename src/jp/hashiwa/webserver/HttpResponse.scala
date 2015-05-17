@@ -7,9 +7,11 @@ import scala.io.Source
 /**
  * Created by Hashiwa on 2015/05/09.
  */
-case class HttpResponse(code: Int, reason: String, headers: Map[String, String], body: List[String]) {
+case class HttpResponse(code: Int, headers: Map[String, String], body: List[String]) {
+  val reason = HttpResponse.reasonPhraseOf(code)
+
   def this(code: Int, reason: String, body: List[String]) =
-    this(code, reason, Map[String, String](), body)
+    this(code, Map[String, String](), body)
 
   def writeTo(out: OutputStream): Unit = {
     val writer = new BufferedWriter(new OutputStreamWriter(out))
@@ -42,16 +44,17 @@ object HttpResponse {
     val rootDir = context.rootDir
 
     getBodyFromFile(rootDir, uri, context) match {
-      case Some(body) => HttpResponse(200, "OK", headers, body)
+      case Some(body) => HttpResponse(200, headers, body)
       case None =>
         getBodyFromClass(uri, request, context) match {
           case Some(res) => res
-          case None       => getError404(request)
+          case None      => getError(404)
         }
     }
   }
 
-  def getError404(request: HttpRequest): HttpResponse = {
+  def getError(code: Int): HttpResponse = {
+    val message = reasonPhraseOf(code)
     val headers = Map[String, String]()
     val body = List[String] (
       "<html>" +
@@ -59,11 +62,10 @@ object HttpResponse {
         "<title>Error: Not Found</title>" +
         "</head>" +
         "<body>" +
-        "<h1>404: Not found</h1>" +
-        request.uri + " is not found." +
+        "<h1>" + code + ": " + message + "</h1>" +
         "</body>" +
         "</html>")
-    HttpResponse(404, "Not Found", headers, body)
+    HttpResponse(404, headers, body)
   }
 
   /**
@@ -122,4 +124,49 @@ object HttpResponse {
       }
     }
   }
+
+  private def reasonPhraseOf(code: Int): String =
+    code match {
+      case 100 => "Continue"
+      case 101 => "Switching Protocols"
+      case 200 => "OK"
+      case 201 => "Created"
+      case 202 => "Accepted"
+      case 203 => "Non-Authoritative Information"
+      case 204 => "No Content"
+      case 205 => "Reset Content"
+      case 206 => "Partial Content"
+      case 300 => "Multiple Choices"
+      case 301 => "Moved Permanently"
+      case 302 => "Found"
+      case 303 => "See Other"
+      case 304 => "Not Modified"
+      case 305 => "Use Proxy"
+      case 307 => "Temporary Redirect"
+      case 400 => "Bad Request"
+      case 401 => "Unauthorized"
+      case 402 => "Payment Required"
+      case 403 => "Forbidden"
+      case 404 => "Not Found"
+      case 405 => "Method Not Allowed"
+      case 406 => "Not Acceptable"
+      case 407 => "Proxy Authentication Required"
+      case 408 => "Request Time-out"
+      case 409 => "Conflict"
+      case 410 => "Gone"
+      case 411 => "Length Required"
+      case 412 => "Precondition Failed"
+      case 413 => "Request Entity Too Large"
+      case 414 => "Request-URI Too Large"
+      case 415 => "Unsupported Media Type"
+      case 416 => "Requested range not satisfiable"
+      case 417 => "Expectation Failed"
+      case 500 => "Internal Server Error"
+      case 501 => "Not Implemented"
+      case 502 => "Bad Gateway"
+      case 503 => "Service Unavailable"
+      case 504 => "Gateway Time-out"
+      case 505 => "HTTP Version not supported"
+      case _   => "Unknown code"
+    }
 }
