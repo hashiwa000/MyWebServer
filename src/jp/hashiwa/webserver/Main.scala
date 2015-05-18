@@ -2,6 +2,7 @@ package jp.hashiwa.webserver
 
 import java.io._
 import java.net.{InetSocketAddress, ServerSocket, Socket}
+import java.util.concurrent.Executors
 
 import jp.hashiwa.webserver.exception.BadRequestException
 
@@ -12,6 +13,7 @@ import jp.hashiwa.webserver.exception.BadRequestException
 object Main {
   val DEFAULT_PORT = 80
   val DEFAULT_ROOTDIR = "rootdir/"
+  val pool = Executors.newCachedThreadPool()
 
   def main(args: Array[String]): Unit = {
     val (addr, context) = args.toList match {
@@ -36,9 +38,9 @@ object Main {
       .continually(serverSocket.accept())
       .foreach(s => {
         println("** accept " + s)
-        new Thread() {
+        pool.execute(new Runnable() {
           override def run(): Unit = processOneRequest(s, context)
-        }.start()
+        })
       })
   }
 
