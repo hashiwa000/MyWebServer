@@ -27,17 +27,19 @@ object Main {
   }
 
   def startServer(addr: InetSocketAddress, context: Context): Unit = {
-    println("** start server")
+    ServerLogger.println("start server")
 
     val serverSocket = new ServerSocket()
     serverSocket.bind(addr)
-    println("** bind at " + addr)
-    println("** root directory is " + context.rootDir)
+
+    ServerLogger.println("bind at " + addr)
+    ServerLogger.println("root directory is " + context.rootDir)
+    println("Server Ready.")
 
     Iterator
       .continually(serverSocket.accept())
       .foreach(s => {
-        println("** accept " + s)
+        ServerLogger.println("accept " + s)
         pool.execute(new Runnable() {
           override def run(): Unit = processOneRequest(s, context)
         })
@@ -47,17 +49,17 @@ object Main {
   def processOneRequest(socket: Socket, context: Context) = {
 
     try {
-      println("** read from " + socket)
+      ServerLogger.println("read from " + socket)
       val request = HttpRequest.parse(socket.getInputStream)
 
       val response = HttpResponse.getResponse(request, context)
 
-      println("** write to " + socket)
+      ServerLogger.println("write to " + socket)
       response.writeTo(socket.getOutputStream)
 
     } catch {
       case e: BadRequestException => {
-        println("** Exception : " + e.getLocalizedMessage)
+        ServerLogger.println("Exception : " + e.getLocalizedMessage)
         val response = HttpResponse.getError(400)
         response.writeTo(socket.getOutputStream)
       }

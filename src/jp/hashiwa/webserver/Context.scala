@@ -18,16 +18,12 @@ class Context(_rootdir: String) {
       Some(classLoader.loadClass(name))
     } catch {
       case e: ClassNotFoundException => {
-        println("** ClassNotFoundException : " + e.getLocalizedMessage)
+        ServerLogger.println("ClassNotFoundException : " + e.getLocalizedMessage)
         None
       }
     }
 
   def resolve(originalUri: String): String =
-//    rootingMap.get(originalUri) match {
-//      case Some(value) => value
-//      case None => originalUri
-//    }
     rootingMap.filter(e => originalUri.matches(e._1))
               .headOption
               .map(_._2) match {
@@ -56,9 +52,10 @@ class Context(_rootdir: String) {
 
     val urls = List(classesDir) ++: libs
 
-    print("** classpath is ")
-    urls.foreach(u => print(u + ", "))
-    println()
+    if (ServerLogger.isDebug()) {
+      ServerLogger.println("classpath is " +
+        urls.foldLeft("")((acc, x) => acc + x + ","))
+    }
 
     val parent = getClass().getClassLoader()
     new URLClassLoader(urls, parent)
@@ -74,11 +71,10 @@ class Context(_rootdir: String) {
     })
 
     if (libs == null) {
-      println("** Failed to read " + fileDir)
+      ServerLogger.println("Failed to read " + fileDir)
       return Array()
     }
 
     libs.map(_.toURI().toURL())
   }
-
 }

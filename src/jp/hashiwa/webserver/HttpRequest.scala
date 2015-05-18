@@ -35,8 +35,6 @@ object HttpRequest {
         key -> value
       }).toMap
 
-    println("** start body")
-
     val body = if (ignoreBody(method)) List() else
       Iterator
       .continually(br.readLine())

@@ -80,7 +80,7 @@ object HttpResponse {
     val file = new File(rootDir + "web/" + uri)
     if (!file.exists()) return None
 
-    println("** get body from " + file)
+    ServerLogger.println("get body from " + file)
 
     val source = Source.fromFile(file)
     Some(source.getLines().toList)
@@ -95,7 +95,6 @@ object HttpResponse {
    */
   private def getBodyFromClass(className: String, request: HttpRequest,
                            context: Context): Option[HttpResponse] = {
-//    println("*** " + uri)
     val clazz = context.loadClass(className) match {
       case Some(c) => c
       case None => return None
@@ -106,7 +105,7 @@ object HttpResponse {
 
     val app = obj.asInstanceOf[WebApp]
 
-    println("** get body from " + className)
+    ServerLogger.println("get body from " + className)
 
     try {
       request.method match {
@@ -118,7 +117,7 @@ object HttpResponse {
       }
     } catch {
       case e: Exception => {
-        println("** " + e.getLocalizedMessage)
+        ServerLogger.println(e.getLocalizedMessage)
         None
       }
     }
