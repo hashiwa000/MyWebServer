@@ -5,22 +5,23 @@ package jp.hashiwa.webserver
  */
 object ServerLogger {
   val debug = System.getProperty("jp.hashiwa.webserver.debug", "false").toLowerCase == "true"
+  // val debug = true;
   val prefix = "** "
 
   def println(): Unit = {
-    if (debug) println(prefix)
+    if (debug) this.println("")
   }
 
   def print(s: String): Unit = {
-    if (debug) print(prefix + s)
+    if (debug) System.out.print(prefix + s)
   }
 
   def println(s: String): Unit = {
-    if (debug) println(prefix + s)
+    if (debug) System.out.println(prefix + s)
   }
 
   def println(list: List[String]): Unit = {
-    if (debug) list.foreach(s => println(prefix + s))
+    if (debug) list.foreach(s => this.println(s))
   }
 
   def isDebug() = debug
