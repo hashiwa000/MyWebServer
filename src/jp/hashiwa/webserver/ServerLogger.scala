@@ -4,8 +4,8 @@ package jp.hashiwa.webserver
  * Created by Hashiwa on 2015/05/18.
  */
 object ServerLogger {
-  val debug = System.getProperty("jp.hashiwa.webserver.debug", "false").toLowerCase == "true"
-  // val debug = true;
+   val debug = System.getProperty("jp.hashiwa.webserver.debug", "false").toLowerCase == "true"
+//  val debug = true
   val prefix = "** "
 
   def println(): Unit = {
