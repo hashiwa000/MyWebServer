@@ -14,7 +14,8 @@ object Main {
   val DEFAULT_PORT = 80
   val DEFAULT_ROOTDIR = "rootdir/"
   val pool = Executors.newCachedThreadPool()
-  val warmupThreadNum = System.getProperty("jp.hashiwa.webserver.warmup", "5").toInt
+  val warmupThreadNum = System.getProperty("jp.hashiwa.webserver.warmupThread", "4").toInt
+  val warmupCount = System.getProperty("jp.hashiwa.webserver.warmupCount", "3").toInt
 
   def main(args: Array[String]): Unit = {
     val (addr, context) = args.toList match {
@@ -27,32 +28,38 @@ object Main {
     startServer(addr, context)
   }
 
-  def startServer(addr: InetSocketAddress, context: Context): Unit = {
+  private def startServer(addr: InetSocketAddress, context: Context): Unit = {
 
     val serverSocket = new ServerSocket()
     serverSocket.bind(addr)
 
-    if (0 < warmupThreadNum) {
-      new Thread() {
-        override def run = warmupServer(addr)
-      }.start
-    }
-
     ServerLogger.println("bind at " + addr)
     ServerLogger.println("root directory is " + context.rootDir)
-    println("Server Ready.")
 
+    // start accepting thread
+    new Thread("ACCEPT-NEW-REQUESTS") {
+      override  def run = acceptNewRequests(serverSocket, context)
+    }.start
+
+    // warm up
+    if (0 < warmupThreadNum && 0 < warmupCount)
+      warmUp(addr)
+
+    println("Server Ready")
+  }
+
+  private def acceptNewRequests(serverSocket: ServerSocket, context: Context): Unit = {
     Iterator
       .continually(serverSocket.accept())
       .foreach(s => {
-        ServerLogger.println("accept " + s)
-        pool.execute(new Runnable() {
-          override def run(): Unit = processOneRequest(s, context)
-        })
+      ServerLogger.println("accept " + s)
+      pool.execute(new Runnable() {
+        override def run(): Unit = processOneRequest(s, context)
       })
+    })
   }
 
-  def processOneRequest(socket: Socket, context: Context) = {
+  private def processOneRequest(socket: Socket, context: Context) = {
     try {
       ServerLogger.println("read from " + socket)
       val request = HttpRequest.parse(socket.getInputStream)
@@ -73,21 +80,23 @@ object Main {
     }
   }
 
-  private def warmupServer(addr: InetSocketAddress): Unit = {
-    println("Warm Up Server : Start (" + warmupThreadNum + ")")
+  private def warmUp(addr: InetSocketAddress): Unit = {
+    println("Warm Up Server : Start (" + warmupThreadNum + " * " + warmupCount + ")")
 
-    val threads = (0 until warmupThreadNum).map(x => new Thread() {
-      override def run(): Unit = {
-        val s = new Socket("localhost", addr.getPort)
-        s.getOutputStream.write("GET / HTTP/1.1\r\n\r\n".getBytes())
-        Iterator.continually(s.getInputStream.read)
-                .takeWhile(b => b>=0)
-//                .foreach(print)  // for debug
-      }
+    (0 until warmupCount).foreach(x => {
+      val threads = (0 until warmupThreadNum).map(y => new Thread() {
+        override def run(): Unit = {
+          val s = new Socket("localhost", addr.getPort)
+          s.getOutputStream.write("GET / HTTP/1.1\r\n\r\n".getBytes())
+          Iterator.continually(s.getInputStream.read)
+                  .takeWhile(b => b>=0)
+//                  .foreach(print)  // for debug
+        }
+      })
+
+      threads.foreach(_.start)
+      threads.foreach(_.join)
     })
-
-    threads.foreach(_.start)
-    threads.foreach(_.join)
 
     println("Warm Up Server : Done")
   }
