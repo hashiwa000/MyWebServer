@@ -2,6 +2,8 @@ package jp.hashiwa.webserver
 
 import java.io._
 
+import jp.hashiwa.webserver.exception.{HttpServerException, MethodNotAllowedException}
+
 import scala.io.Source
 
 /**
@@ -91,7 +93,7 @@ object HttpResponse {
    * @param className ウェブページ生成に使用するクラス
    * @param request リクエスト
    * @param context コンテクスト
-   * @return 生成されたウェブページのbody部。生成できなかった場合はNone。
+   * @return 生成されたウェブページのbody部。アプリケーションが見つからない場合はNone。
    */
   private def getBodyFromClass(className: String, request: HttpRequest,
                            context: Context): Option[HttpResponse] = {
@@ -113,12 +115,16 @@ object HttpResponse {
         case "POST" => Some(app.doPost(request))
         case "PUT" => Some(app.doPut(request))
         case "DELETE" => Some(app.doDelete(request))
-        case _ => None
+        case _ => Some(new HttpResponse(405, List(request.method + " is not acceptable.")))
       }
     } catch {
+      case e: MethodNotAllowedException =>
+        Some(new HttpResponse(405, List(request.method + " is not acceptable in this application.")))
+      case e: HttpServerException =>
+        Some(new HttpResponse(e.code, List(e.getLocalizedMessage)))
       case e: Exception => {
         ServerLogger.println(e.getLocalizedMessage)
-        None
+        Some(new HttpResponse(500, List("Internal Server Error")))
       }
     }
   }

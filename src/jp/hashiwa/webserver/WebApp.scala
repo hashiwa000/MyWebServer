@@ -1,5 +1,7 @@
 package jp.hashiwa.webserver
 
+import jp.hashiwa.webserver.exception.MethodNotAllowedException
+
 /**
  * WebApp base class.
  * One of the methods is called from web server when the page is requested.
@@ -9,14 +11,14 @@ package jp.hashiwa.webserver
  */
 abstract class WebApp {
   def doGet(request: HttpRequest): HttpResponse =
-    throw new UnsupportedOperationException("GET method is not supported.")
+    throw new MethodNotAllowedException("GET method is not supported.")
 
   def doPost(request: HttpRequest): HttpResponse =
-    throw new UnsupportedOperationException("POST method is not supported.")
+    throw new MethodNotAllowedException("POST method is not supported.")
 
   def doPut(request: HttpRequest): HttpResponse =
-    throw new UnsupportedOperationException("PUT method is not supported.")
+    throw new MethodNotAllowedException("PUT method is not supported.")
 
   def doDelete(request: HttpRequest): HttpResponse =
-    throw new UnsupportedOperationException("DELETE method is not supported.")
+    throw new MethodNotAllowedException("DELETE method is not supported.")
 }

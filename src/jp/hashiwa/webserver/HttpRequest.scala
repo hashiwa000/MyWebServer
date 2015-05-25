@@ -11,7 +11,7 @@ case class HttpRequest(method: String, uri: String, version: String, headers: Ma
 }
 
 object HttpRequest {
-  val ignoreBodyMethod = List("GET")  // FIXME
+  val ignoreBodyMethod = List("GET", "DELETE")  // FIXME
 
   def parse(in: InputStream): HttpRequest = {
     val br = new BufferedReader(new InputStreamReader(in))
